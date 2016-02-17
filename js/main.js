@@ -30,7 +30,7 @@ window.onload = function () {
     
     var button;
     var background;
-    var count = 3000;
+    var count = 2500;
     var title;
     var myText;
     var win = false;
