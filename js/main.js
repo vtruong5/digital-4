@@ -17,121 +17,102 @@ window.onload = function () {
     
     
     function preload() {
-
-        game.load.image('sky', 'assets/bg.png');
-        game.load.image('ground', 'assets/platform.png');     
-        game.load.image('player', 'assets/miner.png');
-        game.load.spritesheet('veggies', 'assets/underground.png', 32, 32);
-        game.load.audio('beep', 'assets/sound1.wav');
+        game.load.spritesheet('button', 'assets/button.png', 50, 50);
+        game.load.spritesheet('stuff', 'assets/fruitnveg.png', 32, 32);
+        game.load.image('lose', 'assets/lose.png');
+        game.load.image('win', 'assets/win.png');
+        
     }
     
-    var sprite;
-    var group;
-    var cursors;
-    var platforms;
-    var collect = 0;
-    var sound;
+    var button;
+    var background;
+    var count = 500;
+    var title;
+    var myText;
+    var win = false;
+    var itemGroup;
+    var x = game.rnd.between(0, 770);
+    var y = game.rnd.between(100, 570);
+    var lost;
+    var win;
 
     function create() {
-
+        
         game.physics.startSystem(Phaser.Physics.ARCADE);
         
-        //background
-        game.add.sprite(0, 0, 'sky');
+        game.stage.backgroundColor = '#e7e7e7';
         
-        //sound
-        sound = game.add.audio('beep');
+        //add button
+        button = game.add.button(x, y, 'button', actionOnClick, this, 0, 1, 2);
+        button.onInputOver.add(over, this);
+        button.onInputOut.add(out, this);
+        button.onInputUp.add(up, this);      
         
-        //platforms
-        //  The platforms group contains the ground and the 2 ledges we can jump on
-        platforms = game.add.group();
-
-        //  We will enable physics for any object that is created in this group
-        platforms.enableBody = true;
-
-        // Here we create the ground.
-        var ground = platforms.create(0, game.world.height, 'ground');
-
-        //  Scale it to fit the width of the game (the original sprite is 400x32 in size)
-        ground.scale.setTo(2, 2);
-
-        //  This stops it from falling away when you jump on it
-        ground.body.immovable = true;
-
-        //  Now let's create ledges
-        var ledge = platforms.create(-50, 75, 'ground');
-        ledge.body.immovable = true;
-        ledge = platforms.create(450, 75, 'ground');
-        ledge.body.immovable = true;
-
-        //player
-        sprite = game.add.sprite(200, 35, 'player');
-        game.physics.arcade.enable(sprite);
- 
-        //items
-            group = game.add.physicsGroup();
-            for (var i = 0; i < 10; i++)
-            {
-                var c = group.create(game.rnd.between(0, 770), game.rnd.between(300, 570), 'veggies', 36);
-            }
-            for (var i = 0; i < 500; i++)
-            {
-                var c = group.create(game.rnd.between(0, 770), game.rnd.between(100, 570), 'veggies', game.rnd.between(0, 35));
-
-                c.body.mass = -100;
-            }
-
-            cursors = game.input.keyboard.createCursorKeys();
+        //add text
+        title = game.add.text(16, 16, 'Find your phone before you miss the call', { fontSize: '32px', fill: '#000' }); 
+        myText = game.add.text(16, 50, 'Count: 0', { fontSize: '32px', fill: '#000' }); 
+        
+        //add items
+        itemGroup = game.add.group();
+        for (var i = 0; i < 12; i++)
+        {
+            var item = itemGroup.create(game.rnd.between(0, 770), game.rnd.between(100, 570), 'stuff', game.rnd.between(0, 35));
+            item.inputEnabled = true;
+            item.input.enableDrag();
+            item.events.onDragStart.add(onDragStart, this);
+            item.events.onDragStop.add(onDragStop, this);  
+        }        
     }
 
     function update() {
-        if (game.physics.arcade.collide(sprite, group, collisionHandler, processHandler, this))
-                {
-                    console.log('boom');
-                }
-        game.physics.arcade.collide(sprite, platforms);
-        sprite.body.velocity.x = 0;
-        sprite.body.velocity.y = 0;
-        if (cursors.left.isDown)
-        {
-            sprite.body.velocity.x = -200;
+        if(count != 0 && win == false){
+            count = count-1;
+            myText.text = 'Count: ' + count;                      
         }
-        else if (cursors.right.isDown)
-        {
-            sprite.body.velocity.x = 200;
-        }
-
-        if (cursors.up.isDown)
-        {
-            sprite.body.velocity.y = -200;
-        }
-        else if (cursors.down.isDown)
-        {
-            sprite.body.velocity.y = 200;
-        }
-
-
-        if (collect >= 10){
-            game.add.text(16, 16, 'Congratulations!! You\'re Rich!!', { font: '20px Arial', fill: '#ffffff' });
+        if(count == 0){
+            title.text = 'You missed the call...';
+            myText.text = 'You lose :(';  
+            button.kill();
+            lost = game.add.sprite(x, y, 'lose');
         }
  
     }
-    
-    function processHandler (player, veg) {
-
-        return true;
-
+    function up() {
+        console.log('button up', arguments);
     }
 
-    function collisionHandler (player, veg) {
+    function over() {
+        console.log('button over');
+    }
 
-        if (veg.frame == 36)
-        {
-            veg.kill();
-            sound.play();
-            collect = collect + 1;
+    function out() {
+        console.log('button out');
+    }
+
+    function actionOnClick () {
+
+        //background.visible =! background.visible;
+        //count += 1;
+       
+        win = true;
+        if(count != 0){
+            title.text = 'You found it :)';
+            myText.text = 'YOUR SCORE IS: ' + count;
+            button.kill();
+            win = game.add.sprite(x, y, 'win');            
         }
-
     }
+
+function onDragStart(sprite, pointer) {
+
+    result = "Dragging " + sprite.key;
+
+}
+
+function onDragStop(sprite, pointer) {
+
+    result = sprite.key + " dropped at x:" + pointer.x + " y: " + pointer.y;
+
+}    
 
 };
