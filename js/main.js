@@ -29,33 +29,34 @@ window.onload = function () {
 
     }   
     
-    var player;
+
     var cursors;
-    var enemy;
-    var boss;
     var bg;
     var x = 30;
     var y = 150;
-    var item1;
-    var item2;
+
+    var player;    
+    var hp = 100;
+    var str = game.rnd.between(0,5);
+    
+    var enemy;
     var items;
     var bombs;
     var bombTime = 0;
     var oldBombTime = 0;
-    
-    var hp = 100;
-    var str = game.rnd.between(0,5);
-    
+    var boss;
+    var bossHp = 100;
+
     var myText;
     var message;
+    var bossText;
 
 
     function create() {
         
         game.physics.startSystem(Phaser.Physics.ARCADE);
         game.stage.backgroundColor = '#e1e1e1';
-        
-        
+          
         player = game.add.sprite(x, y, 'obj1');
         game.physics.arcade.enable(player);
         player.body.collideWorldBounds = true;
@@ -63,15 +64,14 @@ window.onload = function () {
         items = game.add.group();
         for (var i = 0; i < 3; i++){
             if(i == 0){
-               var item = items.create(game.rnd.between(310, 700), game.rnd.between(20, 190), 'item'); 
+               var item = items.create(game.rnd.between(310, 650), game.rnd.between(20, 190), 'item'); 
             }
             else if(i == 1){
-                
+                var item = items.create(game.rnd.between(310, 650), game.rnd.between(190, 380), 'item'); 
             }    
             else{
-                
+                var item = items.create(game.rnd.between(310, 650), game.rnd.between(380, 600), 'item');
             }
-            //var item = items.create(game.rnd.between(200, 400), game.rnd.between(70, 500), 'item');
             game.physics.arcade.enable(item);
         }         
         
@@ -83,33 +83,43 @@ window.onload = function () {
 
         enemy = game.add.group();
         for (var i = 0; i < 9; i++){
-            if(i%2 == 0){
-                var e = enemy.create(200, 40+(i*60), 'obj2');                 
-            }
-            else{
-                var e = enemy.create(300, 20+(i*65), 'obj2');
+            var e;
+            if(i < 9){
+                if(i%2 == 0){
+                    e = enemy.create(200, 40+(i*60), 'obj2');                 
+                }
+                else{
+                    e = enemy.create(310, 20+(i*65), 'obj2');
+                }
             }
                 game.physics.arcade.enable(e);
         }
+        for (var i = 0; i < 9; i++){
+            var e;
+            if(i < 9){
+                if(i%2 == 0){
+                    e = enemy.create(450, 40+(i*60), 'obj2');                 
+                }
+                else{
+                    e = enemy.create(580, 20+(i*65), 'obj2');
+                }
+            }
+                game.physics.arcade.enable(e);
+        }        
 
         boss = game.add.sprite(game.world.width-100, game.world.height-350, 'boss');
         game.physics.arcade.enable(boss);        
        
         
-        myText = game.add.text(10, 10, 'hp: '+hp + '   strength: ' + str, { fontSize: '10px', fill: '#000' });
+        myText = game.add.text(10, 10, 'hero hp: '+hp + '   strength: ' + str, { fontSize: '10px', fill: '#000' });
         
         message = game.add.text(10, game.world.height-25, 'defeat the monsters and save the princess', { fontSize: '10px', fill: '#000' });
         message.fontSize = 15;
         message.font = 'Arial';
         
+        bossText = game.add.text(610, 10, 'boss hp: '+bossHp , { fontSize: '10px', fill: '#000' });
         
-        
-        
-        
-        
-        
-        
-        
+           
         cursors = game.input.keyboard.createCursorKeys();
     }
 
@@ -151,7 +161,7 @@ window.onload = function () {
     //    enemy.kill();
         //  Add and update the score
         hp = hp - 1;
-        myText.text = 'hp: '+hp + '   strength: ' + str;
+        myText.text = 'hero hp: '+hp + '   strength: ' + str;
         o1.body.velocity.x = 0;
         o2.body.velocity.x = 0;
         o2.kill();
@@ -172,7 +182,7 @@ window.onload = function () {
             bombTime = 0;
             message.text = 'Bomb Exploded.';
             hp = hp - 1;
-            myText.text = 'hp: '+hp + '   strength: ' + str;            
+            myText.text = 'hero hp: '+hp + '   strength: ' + str;            
         }
         
         checkIfDead();
@@ -192,7 +202,7 @@ window.onload = function () {
             //player.kill();
             message.text = 'You were too weak.';
             hp = hp - 10;
-            myText.text = 'hp: '+hp + '   strength: ' + str;
+            myText.text = 'hero hp: '+hp + '   strength: ' + str;
             player.reset(x, y);
         }
         else{
@@ -206,7 +216,7 @@ window.onload = function () {
         if(hp <= 0){
             player.kill();
             hp = 0;
-            myText.text = 'hp: '+hp + '   strength: ' + str;
+            myText.text = 'hero hp: '+hp + '   strength: ' + str;
             message.text = 'You failed.';
         }      
     }
