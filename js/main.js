@@ -23,6 +23,7 @@ window.onload = function () {
         game.load.image('enemy', 'assets/enemy.png');     
         //objects
         game.load.image('boss', 'assets/boss.png');
+        game.load.image('win', 'assets/boss3.png');
         game.load.image('item', 'assets/collect.png');
         game.load.image('bomb', 'assets/bomb.png');          
         //animations        
@@ -41,13 +42,13 @@ window.onload = function () {
     var bg;
     //player info
     var x = 30;
-    var y = 150; 
+    var y = 250; 
     var player;    
     var hp = 100;
     var str = game.rnd.between(0,5);    
     //boss info
     var boss;
-    var bossHp = 100;    
+    var bossHp = game.rnd.between(150, 300);
     //items
     var enemy;
     var items;
@@ -86,12 +87,12 @@ window.onload = function () {
         
         //bombs
         bombs = game.add.group();
-        for (var i = 0; i < 8; i++){
+        for (var i = 0; i < 20; i++){
             if(i%2 == 0){
-                var b = bombs.create(320, game.rnd.between(70, 550), 'bomb');
+                var b = bombs.create(350, game.rnd.between(70, 550), 'bomb');
             }
             else{
-                var b = bombs.create(600, game.rnd.between(70, 550), 'bomb');
+                var b = bombs.create(630, game.rnd.between(70, 550), 'bomb');
             }
             game.physics.arcade.enable(b);
         } 
@@ -128,13 +129,13 @@ window.onload = function () {
         game.physics.arcade.enable(boss);        
        
         //text
-        myText = game.add.text(10, 10, 'hero hp: '+hp + '   strength: ' + str, { fontSize: '10px', fill: '#000' });       
+        myText = game.add.text(10, 10, 'HP: '+hp + '   LV: ' + str, { fontSize: '10px', fill: '#000' });       
         
         message = game.add.text(10, game.world.height-25, 'Are you lucky enough to be the hero?', { fontSize: '10px', fill: '#000' });
         message.fontSize = 15;
         message.font = 'Arial';   
         
-        bossText = game.add.text(610, 10, 'boss hp: '+bossHp , { fontSize: '10px', fill: '#ff0000' });
+        bossText = game.add.text(610, 10, 'Boss HP: '+bossHp , { fontSize: '10px', fill: '#ff0000' });
         
            
         cursors = game.input.keyboard.createCursorKeys();
@@ -148,8 +149,7 @@ window.onload = function () {
         game.physics.arcade.collide(player, boss, bossTime);
         
         player.body.velocity.x = 0;
-        player.body.velocity.y = 0;
-           
+        player.body.velocity.y = 0;     
 
         if (cursors.left.isDown){
             player.body.velocity.x = -200;
@@ -176,6 +176,7 @@ window.onload = function () {
     }
     
     function enemyCollision (o1, o2) {
+        //animation
         var ani = game.rnd.between(1, 100);
         if(ani <= 25){
             explode = game.add.sprite(o2.x-30, o2.y-30, 'attack2');                
@@ -197,87 +198,122 @@ window.onload = function () {
             animate = explode.animations.add('atkAction');     
             explode.animations.play('atkAction', 30, false); 
         } 
-        var dmg = game.rnd.between(1, 5);
-        hp = hp - dmg;
-        myText.text = 'hero hp: '+hp + '   strength: ' + str;
-        message.text = 'Damage Taken: ' + dmg;
         o1.body.velocity.x = 0;
         o2.body.velocity.x = 0;
         o2.kill();
+        //damage taken
+        var dmg = game.rnd.between(1, 5);
+        hp = hp - dmg;
+        //stregth gained
+        var strGain = game.rnd.between(1, 5);
+        str = str + strGain;
+        //text
+        message.text = 'Enemy Defeated [ HP -' + dmg + ' ] [ LV +' + strGain + ' ]';
         checkIfDead();
     }   
     
-    function bombCollision (o1, o2) {
-        //hp = hp - 1;
-        //myText.text = 'hp: '+hp + '   strength: ' + str;
-        
+    function bombCollision (o1, o2) {   
         o2.body.velocity.x = 0;
         o2.body.velocity.y = 0;
         o2.body.mass = -200;
         o2.body.collideWorldBounds = true;
-        message.text = 'bomb time: ' + bombTime;
         bombTime = bombTime + 1;
         if(bombTime == 20){
+            //animate
             explode = game.add.sprite(o2.x-20, o2.y-50, 'fire');                
             animate = explode.animations.add('fireAction');     
             explode.animations.play('fireAction', 40, false);            
             o2.kill();
             bombTime = 0;
-            message.text = 'Bomb Exploded.';
-            hp = hp - 1;
-            myText.text = 'hero hp: '+hp + '   strength: ' + str;            
-        }
-        
+            //damage
+            var dmg = game.rnd.between(1, 10);
+            hp = hp - dmg;            
+            message.text = 'Bomb Exploded [ HP-' + dmg + ' ]';         
+        }    
         checkIfDead();
     } 
     
     function itemCollision (o1, o2) {
+        //animation
         explode = game.add.sprite(o2.x-40, o2.y-25, 'buff');                
         animate = explode.animations.add('buffAction');     
         explode.animations.play('buffAction', 50, false);           
-        
-        message.text = 'collect item';
+        var buff = game.rnd.between(1, 6);
+        if(buff == 1){
+            var dmg = game.rnd.between(1, 10);
+            hp = hp - dmg;            
+            message.text = 'It was a trap! [ HP-' + dmg + ' ]';          
+        }
+        else if(buff == 2){
+            var heal = game.rnd.between(1, 5);
+            hp = hp + heal;            
+            message.text = 'Found a small potion. [ HP + ' + heal + ' ]';            
+        }
+        else if(buff == 3){
+            var strGain = game.rnd.between(1, 5);
+            str = str + strGain;           
+            message.text = 'Found a cookie. [ LV + ' + strGain + ' ]';            
+        }
+        else if(buff == 4){
+            var strGain = game.rnd.between(5, 10);
+            str = str + strGain;           
+            message.text = 'Found a pizza. [ LV + ' + strGain + ' ]';             
+        }
+        else if(buff == 5){
+            var heal = game.rnd.between(5, 10);
+            hp = hp + heal;            
+            message.text = 'Found a large potion. [ HP + ' + heal + ' ]';             
+        }
+        else{
+            message.text = 'Nothing happened. ' + buff; 
+        }
         o2.kill();
+        checkIfDead();        
     }    
     
     function bossTime (o1, o2){
         o2.body.velocity.x = 0;
         o2.body.velocity.y = 0;
         o2.body.mass = -100;
-        o2.body.collideWorldBounds = true;
+        o2.body.collideWorldBounds = true;    
         
-        explode = game.add.sprite(o2.x, o2.y, 'cut');                
-        animate = explode.animations.add('cutAction');     
-        explode.animations.play('cutAction', 40, false);     
+        //hp managment
         bossHp = bossHp - str;
         bossText.text = 'boss hp: ' + bossHp;
-        if(str < 10){
-            
-            //player.kill();
-            message.text = 'You were too weak.';
-            hp = hp - 10;
-            myText.text = 'hero hp: '+hp + '   strength: ' + str;
-            
+        
+        //still alive
+        if(bossHp > 0){   
+            var dmg = game.rnd.between(5, 10);
+            hp = hp - dmg;
+            message.text = 'You were too weak [ HP-' + dmg + ' ]';           
         }
+        //boss died
         else{
-            message.text = 'You defeated the demon king and saved your people.';
+            message.text = 'You are the LENGENDARY HERO!';
             o2.kill();
+            o2 = game.add.sprite(o2.x, o2.y , 'win');
               
         }
+        //fight animation
+        explode = game.add.sprite(o2.x, o2.y, 'cut');                
+        animate = explode.animations.add('cutAction');     
+        explode.animations.play('cutAction', 40, false);         
         checkIfDead();
-        o1.reset(x, y);
+        if(hp > 0){
+         o1.reset(x, y);           
+        }
     }
-    
-    
+      
     function checkIfDead(){
         if(hp <= 0){
             explode = game.add.sprite(player.x-30, player.y-30, 'dead');                
             animate = explode.animations.add('deadAction');     
-            explode.animations.play('deadAction', 70, false);               
-            player.kill();
+            explode.animations.play('deadAction', 70, false);                           
             hp = 0;
-            myText.text = 'hero hp: '+hp + '   strength: ' + str;
-            message.text = 'You failed.';
+            myText.text = 'GAME OVER';
+            message.text = 'Your were not fated to be a hero.';
+            player.kill();
         }      
+            myText.text = 'HP: '+hp + '   LV: ' + str;           
     }
 };
