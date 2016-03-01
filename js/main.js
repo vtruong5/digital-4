@@ -13,379 +13,200 @@ window.onload = function () {
     
     "use strict";
     
-    var game = new Phaser.Game(800, 600, Phaser.AUTO, 'game', { preload: preload, create: create, update: update } );
+    var game = new Phaser.Game(360, 640, Phaser.AUTO, 'game', { preload: preload, create: create, update: update } );
 
     function preload() {
-        //background
-        game.load.image('background','assets/background.png'); 
-        game.load.image('bar', 'assets/bar.png');
-        //characters
-        game.load.spritesheet('hero', 'assets/player.png', 32, 32);
-        game.load.image('enemy', 'assets/enemy.png');     
-        //objects
-        game.load.image('boss', 'assets/boss.png');
-        game.load.image('win', 'assets/boss3.png');
-        game.load.image('item', 'assets/collect.png');
-        game.load.image('bomb', 'assets/bomb.png');          
-        //animations        
-        game.load.spritesheet('fire', 'assets/fire.png', 110, 110, 28);
-        game.load.spritesheet('cut', 'assets/slash.png', 110, 110, 30);
-        game.load.spritesheet('buff', 'assets/Heal6.png', 100, 100, 30);
-        game.load.spritesheet('attack1', 'assets/Attack1.png', 110, 110, 4);
-        game.load.spritesheet('attack2', 'assets/Attack2.png', 110, 110, 10);
-        game.load.spritesheet('attack3', 'assets/Attack3.png', 110, 110, 10);
-        game.load.spritesheet('attack4', 'assets/Attack4.png', 110, 110, 10);      
-        game.load.spritesheet('end', 'assets/Gun2.png', 110, 110, 25);  
-        game.load.spritesheet('dead', 'assets/Light6.png', 110, 110, 30);
-        //audio
-        game.load.audio('atk1', 'assets/atk1.wav');
-        game.load.audio('atk2', 'assets/atk2.wav');
-        game.load.audio('atk3', 'assets/atk3.wav');
-        game.load.audio('atk4', 'assets/atk4.wav');
-        game.load.audio('boost', 'assets/boost.wav');
-        game.load.audio('lose', 'assets/dead.wav');
-        game.load.audio('win', 'assets/cheer.mp3');
-        game.load.audio('die', 'assets/gasp.mp3');
-        game.load.audio('explode', 'assets/explode.wav');
-        game.load.audio('bgm', 'assets/NotthisTime.wav');
+        game.load.image('firework', 'assets/firework_b4.png');
+        game.load.image('line', 'assets/line.png');
+        game.load.image('fg', 'assets/foreground.png');
+        game.load.spritesheet('f1_w', 'assets/f1_white.png', 150, 150, 12);
+        game.load.spritesheet('f1_g', 'assets/f1_green.png', 150, 150, 12);
+        game.load.spritesheet('f1_y', 'assets/f1_yellow.png', 150, 150, 12);
+        game.load.spritesheet('f2_w', 'assets/f2_white.png', 230, 230, 16);
+        game.load.spritesheet('f2_o', 'assets/f2_orange.png', 230, 230, 16);
+        game.load.spritesheet('f2_p', 'assets/f2_purple.png', 230, 230, 16);
+        game.load.spritesheet('f3_w', 'assets/f3_white.png', 300, 300, 20);
+        game.load.spritesheet('f3_r', 'assets/f3_red.png', 300, 300, 20);
+        game.load.spritesheet('f3_b', 'assets/f3_blue.png', 300, 300, 20);
+        
+
     }   
-      
-    var cursors;
-//    var atkKey;
-    var bg;
-    //player info
-    var x = 30;
-    var y = 250; 
-    var player;    
-    var hp = game.rnd.between(90,110);
-    var str = game.rnd.between(0,5);    
-    //boss info
-    var boss;
-    var bossHp = game.rnd.between(150, 250);
-    //items
-    var enemy;
-    var items;
-    var bombs;
-    var bombTime = 0;
-    var oldBombTime = 0;    
-    //text
-    var myText;
+    
     var message;
-    var bossText;
-    //animations
+    var fireworkGroup;
+    var numOfFireworks = 5;
+    var topBoundY = 40;
+    var lowerBoundY = 350;
+    var firework;
+    var hp = 100;
+    var myText;
+    var time = Phaser.Timer.SECOND * 3;
+    var endGame = false;
+    var score = 0;
+    var scoreText;
+    var line1, line2, line3;
+    
     var explode;
     var animate;
-    var box1;
-    var box2;
-    //audio
-    var bgMusic;
-    var atkSound1;
-    var atkSound2;
-    var atkSound3;
-    var atkSound4;
-    var boomSound;
-    var buffSound;
-    var failSound;
-    var winSound;
-    var dieSound;
+    var spawner;
 
     function create() {
-        
         game.physics.startSystem(Phaser.Physics.ARCADE);
-        game.stage.backgroundColor = '#e1e1e1';
-        game.add.sprite(0,0,'background');
+        game.stage.backgroundColor = '#020041';
         
-        box1 = game.add.sprite(0, game.world.height-30, 'bar');   
-        game.physics.arcade.enable(box1);
-        box1.body.immovable = true;
-        box2 = game.add.sprite(0, 0, 'bar');   
-        game.physics.arcade.enable(box2);
-        box2.body.immovable = true;     
+        line1 = game.add.sprite(0, 150, 'line');
+        line1.alpha = 0.05;
+        line2 = game.add.sprite(0, 350, 'line');
+        line2.alpha = 0.05;
+        line3 = game.add.sprite(0, 500, 'line');
+        line3.alpha = 0.05;
+
         
-        //audio
-        bgMusic = game.add.audio('bgm', true);
-        bgMusic.play();  
- 
-        atkSound1 = game.add.audio('atk1');
-        atkSound2 = game.add.audio('atk2');
-        atkSound3 = game.add.audio('atk3');
-        atkSound4 = game.add.audio('atk4');
-        boomSound = game.add.audio('explode');
-        buffSound = game.add.audio('boost');
-        failSound = game.add.audio('lose');
-        winSound = game.add.audio('win');
-        dieSound = game.add.audio('die');
+       
+        //spawner = game.time.create(false);
+        //spawner.loop(Phaser.Timer.SECOND * 2, makeFirework, this);
+        //spawner.start();
+        spawner = game.time.events.loop(Phaser.Timer.SECOND, makeFirework, this);
+        fireworkGroup = game.add.group();
+        fireworkGroup.enableBody = true;
         
-        //player
-        player = game.add.sprite(x, y, 'hero');
-        game.physics.arcade.enable(player);
-        player.body.collideWorldBounds = true;  
-        player.animations.add('right', [3, 4, 5], 10, true);
-        player.animations.add('up', [9, 10, 11], 10, true);
-        player.animations.add('down', [0, 1, 2], 10, true);
-        player.animations.add('left', [6, 7, 8], 10, true);        
+        game.add.sprite(0, 500, 'fg');
         
-        //items
-        items = game.add.group();
-        for (var i = 0; i < 3; i++){
-            var item = items.create(400, 60+(230*i), 'item');
-            game.physics.arcade.enable(item);
-        }   
-        
-        //bombs
-        bombs = game.add.group();
-        for (var i = 0; i < 20; i++){
-            if(i%2 == 0){
-                var b = bombs.create(350, 40+(i*27), 'bomb');
-            }
-            else{
-                var b = bombs.create(630, 40+(i*25), 'bomb');
-            }
-            game.physics.arcade.enable(b);
-        } 
-        
-        //enemies
-        enemy = game.add.group();
-        for (var i = 0; i < 15; i++){
-            var e;
-            if(i%2 == 0){
-                e = enemy.create(450, 40+(i*40), 'enemy');                 
-            }
-            else{
-                e = enemy.create(580, 25+(i*35), 'enemy');
-            }
-            game.physics.arcade.enable(e);
-            e.body.immovable = true;
-        }
-        for (var i = 0; i < 9; i++){
-            var e;
-            if(i%2 == 0){
-                e = enemy.create(200, 40+(i*60), 'enemy');                 
-            }
-            else{
-                e = enemy.create(300, 20+(i*65), 'enemy');
-            }
-            game.physics.arcade.enable(e);
-        }        
-        
-        //boss
-        boss = game.add.sprite(game.world.width-100, game.world.height-350, 'boss');
-        game.physics.arcade.enable(boss);        
-        
-        //text
-        myText = game.add.text(10, 4, 'HP: '+hp + '   LV: ' + str, { fontSize: '10px', fill: '#fff' }); myText.fontSize = 20;      
-        myText.font = 'Arial Black';
-        
-        message = game.add.text(10, game.world.height-24, 'Are you lucky enough to be the hero? [ Move with arrow keys ]', { fontSize: '10px', fill: '#fff' });
+        message = game.add.text(10, game.world.height-24, 'Put on a firework show by clicking on the fireworks', { fill: '#fff' });
         message.fontSize = 15;
-        message.font = 'Arial';   
+        message.font = 'Arial'; 
+
+        myText = game.add.text(10, 10, 'Time Left: ' + time, { fill: '#fff' });
+        myText.fontSize = 15;
+        myText.font = 'Arial'; 
         
-        bossText = game.add.text(645, 4, 'Boss HP: '+bossHp , { fontSize: '10px', fill: '#ff0000' });
-        bossText.fontSize = 20;      
-        bossText.font = 'Arial Black';        
-           
-        cursors = game.input.keyboard.createCursorKeys();
-//        atkKey = game.input.keyboard.addKey(Phaser.Keyboard.Z);
+        scoreText = game.add.text(10, 40, 'Score: ' + score, { fill: '#fff' });
+        scoreText.fontSize = 15;
+        scoreText.font = 'Arial';         
+        
+        game.input.onDown.add(click, this);
     }
 
-    function update() {
+    function update() { 
+        //game.physics.arcade.collide(checkPos, firework);
+        fireworkGroup.forEach(checkPos, this);
         
-        game.physics.arcade.collide(player, box1);
-        game.physics.arcade.collide(player, box2);
-        game.physics.arcade.collide(player, enemy, enemyCollision, null, this);
-        game.physics.arcade.collide(player, bombs, bombCollision, null, this);
-        game.physics.arcade.collide(player, items, itemCollision, null, this);
-        game.physics.arcade.collide(player, boss, bossTime);
-        
-        player.body.velocity.x = 0;
-        player.body.velocity.y = 0;     
+        if(time > 0){
+            time--;
+        }
+        myText.text = 'Time Left: ' + time;
+        if(time == 0){
+            endGame = true;
+            myText.text = 'Great Show!';
+            myText.fontSize = 20;
+        }
+    }
+    
+    function click(pointer) {
+        //message.text = 'normal click';
+    }
 
-        if (cursors.left.isDown){
-            player.body.velocity.x = -200;
-            player.animations.play('left');
-        }
-        else if (cursors.right.isDown){
-            player.body.velocity.x = 200;
-            player.animations.play('right');
-        }
-        else if (cursors.up.isDown){
-            player.body.velocity.y = -200;
-            player.animations.play('up');
-        }
-        else if (cursors.down.isDown){
-            player.body.velocity.y = 200;
-            player.animations.play('down');
-        }
-        else{
-            //  Stand still
-            player.animations.stop();
-            player.frame = 4;
-        }        
-  
-    }
     
-    function enemyCollision (o1, o2) {
-        //animation
-//        if(atkKey.isDown){
-        var ani = game.rnd.between(1, 100);
-        if(ani <= 25){
-            explode = game.add.sprite(o2.x-30, o2.y-30, 'attack2');                
-            animate = explode.animations.add('atkAction');     
-            explode.animations.play('atkAction', 30, false);
-            atkSound1.play();
+    function hasClicked(firework){
+        //message.text = 'firework click: x = ' + firework.x + ' y = '+ firework.y;
+        if(endGame == false){
+            var aniRnd = game.rnd.between(1, 3);
+            if(firework.y < 500){  
+                firework.kill();
+                if(firework.y < 150){
+                    score = score + 10; 
+                    message.text = 'Amazing!';
+                    if(aniRnd == 1){
+                        explode = game.add.sprite(firework.x-142, firework.y-142, 'f3_r');  
+                        animate = explode.animations.add('f3rAction');     
+                        explode.animations.play('f3rAction', 30, false, true);  
+                        game.stage.backgroundColor = '#410000';
+                    }
+                    else if(aniRnd == 3){
+                        explode = game.add.sprite(firework.x-142, firework.y-142, 'f3_b');  
+                        animate = explode.animations.add('f3bAction');     
+                        explode.animations.play('f3bAction', 30, false, true);   
+                        game.stage.backgroundColor = '#020041';
+                    }
+                    else{
+                        explode = game.add.sprite(firework.x-142, firework.y-142, 'f3_w');  
+                        animate = explode.animations.add('f3wAction');     
+                        explode.animations.play('f3wAction', 30, false, true); 
+                        game.stage.backgroundColor = '#424242';
+                    }                       
+                }
+                else if(firework.y < 350){
+                    score = score + 5; 
+                    message.text = 'So pretty!';
+                    if(aniRnd == 1){
+                        explode = game.add.sprite(firework.x-107, firework.y-107, 'f2_o');  
+                        animate = explode.animations.add('f2oAction');     
+                        explode.animations.play('f2oAction', 30, false, true);
+                        game.stage.backgroundColor = '#4d2f00';
+                    }
+                    else if(aniRnd == 3){
+                        explode = game.add.sprite(firework.x-107, firework.y-107, 'f2_p');  
+                        animate = explode.animations.add('f2pAction');     
+                        explode.animations.play('f2pAction', 30, false, true); 
+                        game.stage.backgroundColor = '#2a004d';
+                    }
+                    else{
+                        explode = game.add.sprite(firework.x-107, firework.y-107, 'f2_w');  
+                        animate = explode.animations.add('f2wAction');     
+                        explode.animations.play('f2wAction', 30, false, true); 
+                        game.stage.backgroundColor = '#424242';
+                    }                    
+                }
+                else if(firework.y < 500){
+                    score = score + 1; 
+                    message.text = 'Nice!';
+                    if(aniRnd == 1){
+                        explode = game.add.sprite(firework.x-68, firework.y-68, 'f1_g');  
+                        animate = explode.animations.add('f1gAction');     
+                        explode.animations.play('f1gAction', 30, false, true); 
+                        game.stage.backgroundColor = '#004d0e';
+                    }
+                    else if(aniRnd == 3){
+                        explode = game.add.sprite(firework.x-68, firework.y-68, 'f1_y');  
+                        animate = explode.animations.add('f1yAction');     
+                        explode.animations.play('f1yAction', 30, false, true);
+                        game.stage.backgroundColor = '#4d4c00';
+                        
+                    }
+                    else{
+                        explode = game.add.sprite(firework.x-68, firework.y-68, 'f1_w');  
+                        animate = explode.animations.add('f1wAction');     
+                        explode.animations.play('f1wAction', 30, false, true); 
+                        game.stage.backgroundColor = '#424242';
+                    }
+                }  
+            }
+            else{
+                message.text = 'Too low to see!';
+                score = score - 3; 
+            }   
         }
-        else if(ani <= 50){
-            explode = game.add.sprite(o2.x-30, o2.y-30, 'attack3');                
-            animate = explode.animations.add('atkAction');     
-            explode.animations.play('atkAction', 30, false);  
-            atkSound2.play();
-        }
-        else if(ani <= 75){
-            explode = game.add.sprite(o2.x-30, o2.y-30, 'attack4');                
-            animate = explode.animations.add('atkAction');     
-            explode.animations.play('atkAction', 30, false); 
-            atkSound3.play();
-        }
-        else{
-            explode = game.add.sprite(o2.x-30, o2.y-30, 'attack1');                
-            animate = explode.animations.add('atkAction');     
-            explode.animations.play('atkAction', 30, false); 
-            atkSound4.play();
-        } 
-        o1.body.velocity.x = 0;
-        o2.body.velocity.x = 0;
-        o2.kill();
-        //damage taken
-        var dmg = game.rnd.between(1, 5);
-        hp = hp - dmg;
-        //stregth gained
-        var strGain = game.rnd.between(1, 5);
-        str = str + strGain;
-        //text
-        message.text = 'Enemy Defeated [ HP -' + dmg + ' ] [ LV +' + strGain + ' ]';          
-//        }
+        scoreText.text = 'Score: ' + score;
+    }  
+    
+    function makeFirework(){
+        //message.text = 'make firework';
+        
+        var firework = fireworkGroup.create(game.rnd.between(5,355), 630, 'firework');
+        firework.body.velocity.y = -(game.rnd.between(70,200));
+        game.physics.arcade.enable(firework);
+        firework.body.setSize(20,20);
+        firework.inputEnabled = true;
+        firework.events.onInputDown.add(hasClicked, this);       
+    }
 
-        checkIfDead();
-    }   
-    
-    function bombCollision (o1, o2) {   
-        o2.body.velocity.x = 0;
-        o2.body.velocity.y = 0;
-        o2.body.mass = -200;
-        o2.body.collideWorldBounds = true;
-        bombTime = bombTime + 1;
-        if(bombTime == 20){
-            //animate
-            explode = game.add.sprite(o2.x-20, o2.y-50, 'fire');                
-            animate = explode.animations.add('fireAction');     
-            explode.animations.play('fireAction', 40, false);            
-            o2.kill();
-            boomSound.play();
-            bombTime = 0;
-            //damage
-            var dmg = game.rnd.between(1, 10);
-            hp = hp - dmg;            
-            message.text = 'Bomb Exploded [ HP -' + dmg + ' ]';         
-        }    
-        checkIfDead();
-    } 
-    
-    function itemCollision (o1, o2) {
-        //animation         
-        var buff = game.rnd.between(1, 6);
-        if(buff != 6){
-            explode = game.add.sprite(o2.x-40, o2.y-25, 'buff');                
-            animate = explode.animations.add('buffAction');     
-            explode.animations.play('buffAction', 50, false);                         
+    function checkPos (firework) {
+        if (firework.y < -16)
+        {
+            firework.kill();
+            //message.text = 'MISS';
         }
-        if(buff == 1){
-            var dmg = game.rnd.between(1, 10);
-            hp = hp - dmg;            
-            message.text = 'It was a trap! [ HP -' + dmg + ' ]'; 
-            boomSound.play();
-        }
-        else if(buff == 2){
-            var heal = game.rnd.between(1, 5);
-            hp = hp + heal;            
-            message.text = 'Found a small potion. [ HP +' + heal + ' ]';   
-            buffSound.play();
-        }
-        else if(buff == 3){
-            var strGain = game.rnd.between(1, 5);
-            str = str + strGain;           
-            message.text = 'Found a scroll. [ LV +' + strGain + ' ]'; 
-            buffSound.play();
-        }
-        else if(buff == 4){
-            var strGain = game.rnd.between(5, 10);
-            str = str + strGain;           
-            message.text = 'Found a magic book. [ LV +' + strGain + ' ]';
-            buffSound.play();
-        }
-        else if(buff == 5){
-            var heal = game.rnd.between(5, 10);
-            hp = hp + heal;            
-            message.text = 'Found a large potion. [ HP +' + heal + ' ]';
-            buffSound.play();
-        }
-        else{
-            message.text = 'Nothing happened. ' + buff; 
-        }
-        o2.kill();
-        checkIfDead();        
-    }    
-    
-    function bossTime (o1, o2){
-        o2.body.velocity.x = 0;
-        o2.body.velocity.y = 0;
-        o2.body.mass = -100;
-        o2.body.collideWorldBounds = true;    
-        
-        //hp managment
-        bossHp = bossHp - str;
-        if(bossHp < 0){
-            bossHp = 0;
-        }
-        bossText.text = 'Boss HP: ' + bossHp;
-        
-        //still alive
-        if(bossHp > 0){   
-            var dmg = game.rnd.between(5, 10);
-            hp = hp - dmg;
-            message.text = 'You were too weak and sent home. [ HP -' + dmg + ' ]';   
-            failSound.play();
-        }
-        //boss died
-        else{
-            message.text = 'You are a LENGENDARY HERO!';
-            o2.kill();
-            bgMusic.stop();
-            winSound.play();
-            o2 = game.add.sprite(o2.x, o2.y , 'win');
-              
-        }
-        //fight animation
-        explode = game.add.sprite(o2.x, o2.y, 'cut');                
-        animate = explode.animations.add('cutAction');     
-        explode.animations.play('cutAction', 40, false);         
-        checkIfDead();
-        if(hp > 0){
-         o1.reset(x, y);           
-        }
-    }
-      
-    function checkIfDead(){
-        if(hp <= 0){
-            explode = game.add.sprite(player.x-30, player.y-30, 'dead');                
-            animate = explode.animations.add('deadAction');     
-            explode.animations.play('deadAction', 70, false);                           
-            hp = 0;
-            myText.text = 'GAME OVER';
-            message.text = 'Your were not fated to be a hero.';
-            player.kill();
-            bgMusic.stop();
-            dieSound.play();            
-        }      
-            myText.text = 'HP: '+hp + '   LV: ' + str;           
-    }
+
+}    
+
 };
