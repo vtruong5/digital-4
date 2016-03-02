@@ -18,6 +18,7 @@ window.onload = function () {
     function preload() {
         game.load.image('firework', 'assets/firework_b4.png');
         game.load.image('line', 'assets/line.png');
+        game.load.image('over', 'assets/overlay.png');
         game.load.image('fg', 'assets/foreground.png');
         game.load.spritesheet('f1_w', 'assets/f1_white.png', 150, 150, 12);
         game.load.spritesheet('f1_g', 'assets/f1_green.png', 150, 150, 12);
@@ -28,6 +29,10 @@ window.onload = function () {
         game.load.spritesheet('f3_w', 'assets/f3_white.png', 300, 300, 20);
         game.load.spritesheet('f3_r', 'assets/f3_red.png', 300, 300, 20);
         game.load.spritesheet('f3_b', 'assets/f3_blue.png', 300, 300, 20);
+        game.load.audio('win', 'assets/cheer.mp3');    
+        game.load.audio('fw1', 'assets/fw1.mp3');
+        game.load.audio('fw2', 'assets/fw2.mp3');
+        game.load.audio('fw3', 'assets/fw3.mp3');
         
 
     }   
@@ -45,33 +50,44 @@ window.onload = function () {
     var score = 0;
     var scoreText;
     var line1, line2, line3;
+    var winSound;
     
     var explode;
     var animate;
     var spawner;
+    
+    var fw1Sound;
+    var fw2Sound;
+    var fw3Sound;    
 
     function create() {
         game.physics.startSystem(Phaser.Physics.ARCADE);
         game.stage.backgroundColor = '#020041';
         
-        line1 = game.add.sprite(0, 150, 'line');
+/*        line1 = game.add.sprite(0, 150, 'line');
         line1.alpha = 0.05;
         line2 = game.add.sprite(0, 350, 'line');
         line2.alpha = 0.05;
         line3 = game.add.sprite(0, 500, 'line');
         line3.alpha = 0.05;
-
+*/
+        //gradient overlay
+        game.add.sprite(0,0,'over');
         
-       
-        //spawner = game.time.create(false);
-        //spawner.loop(Phaser.Timer.SECOND * 2, makeFirework, this);
-        //spawner.start();
+        winSound = game.add.audio('win');
+        fw1Sound = game.add.audio('fw1');
+        fw2Sound = game.add.audio('fw2');
+        fw3Sound = game.add.audio('fw3');           
+        
+        //make fireworks
         spawner = game.time.events.loop(Phaser.Timer.SECOND, makeFirework, this);
         fireworkGroup = game.add.group();
         fireworkGroup.enableBody = true;
         
+        //foreground image
         game.add.sprite(0, 500, 'fg');
         
+        //text
         message = game.add.text(10, game.world.height-24, 'Put on a firework show by clicking on the fireworks', { fill: '#fff' });
         message.fontSize = 15;
         message.font = 'Arial'; 
@@ -84,13 +100,13 @@ window.onload = function () {
         scoreText.fontSize = 15;
         scoreText.font = 'Arial';         
         
+        //mouse input
         game.input.onDown.add(click, this);
     }
 
     function update() { 
-        //game.physics.arcade.collide(checkPos, firework);
         fireworkGroup.forEach(checkPos, this);
-        
+              
         if(time > 0){
             time--;
         }
@@ -103,7 +119,9 @@ window.onload = function () {
     }
     
     function click(pointer) {
-        //message.text = 'normal click';
+        if(endGame == true){
+            winSound.play();           
+        }
     }
 
     
@@ -114,6 +132,7 @@ window.onload = function () {
             if(firework.y < 500){  
                 firework.kill();
                 if(firework.y < 150){
+                    fw2Sound.play();
                     score = score + 10; 
                     message.text = 'Amazing!';
                     if(aniRnd == 1){
@@ -136,6 +155,7 @@ window.onload = function () {
                     }                       
                 }
                 else if(firework.y < 350){
+                    fw1Sound.play();
                     score = score + 5; 
                     message.text = 'So pretty!';
                     if(aniRnd == 1){
@@ -158,6 +178,7 @@ window.onload = function () {
                     }                    
                 }
                 else if(firework.y < 500){
+                    fw3Sound.play();
                     score = score + 1; 
                     message.text = 'Nice!';
                     if(aniRnd == 1){
@@ -207,6 +228,6 @@ window.onload = function () {
             //message.text = 'MISS';
         }
 
-}    
+    }    
 
 };
